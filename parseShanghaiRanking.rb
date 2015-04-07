@@ -17,9 +17,11 @@ def convertToDollar(value)
       return value
     else
       link = 'https://www.google.at/search?q=' + value + ' to $'
+      # TODO
+      puts URI.escape(link)
       page = Nokogiri::HTML(open(URI.escape(link)))
-      text = page.css('.vk_ans>span').text.force_encoding("ISO-8859-1").encode("utf-8", replace: nil)
-      return "$" + text
+      answer = page.css('div.vk_ans')[0].text
+      return ("$" + answer)
     end
   else
     return "$0"
