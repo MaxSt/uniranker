@@ -9,10 +9,16 @@ Install Ruby (https://www.ruby-lang.org)
 (Tested and Supported Versions: ruby 2.0)
 
 Install Bundler (http://bundler.io/)
+```
 gem install bundler
+```
 
 run bundle install in uniranker directory
+```
 bundle install
+```
 
 run uniranker.rb ruby script
+```
 ruby uniranker.rb
+```
