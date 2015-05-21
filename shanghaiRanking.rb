@@ -1,6 +1,9 @@
 # encoding: UTF-8
 require 'rubygems'
 
+#use pure ruby dns lookup
+require 'resolv-replace'
+
 #parse xml/html
 require 'nokogiri'
 
