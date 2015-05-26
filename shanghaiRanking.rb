@@ -10,6 +10,9 @@ require 'nokogiri'
 #open url
 require 'open-uri'
 
+#ruby template language
+require 'erb'
+
 @encoding = "ISO-8859-1"
 @currencies = {"€" => "EUR", "£" => "GBP", "$" => "USD"}
 @currenciesRegexStr = "["
@@ -63,29 +66,36 @@ def outputUniversity(university, *keys)
   end
 end
 
-def parseShanghaiRanking(link)
-page = Nokogiri::HTML(open(link))
-
-allrows = page.css('table#UniversityRanking > tr')
-allrows.shift #delete first element (first row is header)
-
-universities = Array.new
-
-allrows.each do |row|
-  university = Hash.new
-  cols = row.css('td')
-  university[:rank] = cols[0].text
-  university[:name] = cols[1].css('a').text
-  university[:totalscore] = cols[3].css('div').text
-  university[:alumni] = cols[4].css('div').text
-  university[:award] = cols[5].css('div').text
-  university[:hici] = cols[6].css('div').text
-  university[:pub] = cols[7].css('div').text
-  university[:top] = cols[8].css('div').text
-  university[:tuition] = convertToDollar(getTuition(university[:name]))
-  outputUniversity(university, 'rank', 'name', 'tuition')
-  universities.push(university)
+def outputToHtmlTable(universities, filename)
+  File.open('./' + filename, 'w') do |new_file|
+    @universities = universities
+    new_file.write ERB.new(File.read('./table.html.erb')).result(binding)
+  end
 end
+
+def parseShanghaiRanking(link)
+  page = Nokogiri::HTML(open(link))
+
+  allrows = page.css('table#UniversityRanking > tr')
+  allrows.shift #delete first element (first row is header)
+
+  universities = Array.new
+  allrows.each do |row|
+    university = Hash.new
+    cols = row.css('td')
+    university[:rank] = cols[0].text
+    university[:name] = cols[1].css('a').text
+    university[:totalscore] = cols[3].css('div').text
+    university[:alumni] = cols[4].css('div').text
+    university[:award] = cols[5].css('div').text
+    university[:hici] = cols[6].css('div').text
+    university[:pub] = cols[7].css('div').text
+    university[:top] = cols[8].css('div').text
+    university[:tuition] = convertToDollar(getTuition(university[:name]))
+    outputUniversity(university, 'rank', 'name', 'tuition')
+    universities.push(university)
+  end
+  outputToHtmlTable(universities, 'output.html')
 end
 
 
