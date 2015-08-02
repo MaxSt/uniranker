@@ -26,7 +26,8 @@ end
 def getTuition(universityname)
   unistring = universityname.tr(' ', '+')
   link = 'https://www.google.at/search?q=' + unistring + '+tuition+total+per+year'
-  tuitionpage = Nokogiri::HTML(open(link))
+  sleep(40)
+  tuitionpage = Nokogiri::HTML(open(URI.escape(link)))
   text = tuitionpage.css('#search').text.force_encoding(@encoding)
   return text.match(/#{@currenciesRegexStr}/).to_s
 end
@@ -39,6 +40,7 @@ def convertToDollar(value)
     else
       value.slice!(0)
       link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=" + @currencies[currencySign].to_s + "&To=USD"
+      sleep(40)
       convertpage = Nokogiri::HTML(open(URI.escape(link)))
       answer = convertpage.css('.uccRes .rightCol')[0].text
       return ("$" + answer)
