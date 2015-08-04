@@ -22,11 +22,16 @@ end
 @currenciesRegexStr += ']\d+[\,\.]\d+'
 @currenciesRegexStr.force_encoding(@encoding)
 
+#delay request from google
+@delay = 0;
+
+#limit univerities (nil for all)
+@limit = nil;
 
 def getTuition(universityname)
   unistring = universityname.tr(' ', '+')
   link = 'https://www.google.at/search?q=' + unistring + '+tuition+total+per+year'
-  sleep(40)
+  sleep(@delay)
   tuitionpage = Nokogiri::HTML(open(URI.escape(link)))
   text = tuitionpage.css('#search').text.force_encoding(@encoding)
   return text.match(/#{@currenciesRegexStr}/).to_s
@@ -40,7 +45,7 @@ def convertToDollar(value)
     else
       value.slice!(0)
       link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=" + @currencies[currencySign].to_s + "&To=USD"
-      sleep(40)
+      sleep(@delay)
       convertpage = Nokogiri::HTML(open(URI.escape(link)))
       answer = convertpage.css('.uccRes .rightCol')[0].text
       return ("$" + answer)
@@ -82,7 +87,8 @@ def parseShanghaiRanking(link)
   allrows.shift #delete first element (first row is header)
 
   universities = Array.new
-  allrows.each do |row|
+  allrows.each_with_index do |row, index|
+    break if @limit && index >= @limit
     university = Hash.new
     cols = row.css('td')
     university[:rank] = cols[0].text
