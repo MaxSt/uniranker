@@ -10,27 +10,43 @@ require 'nokogiri'
 #open url
 require 'open-uri'
 
-#ruby template language
-require 'erb'
 
 @encoding = "ISO-8859-1"
-@currencies = {"€" => "EUR", "£" => "GBP", "$" => "USD"}
-@currenciesRegexStr = "["
+@currencies = {
+  "\\€" => "EUR",
+  "\\£" => "GBP",
+  "\\$" => "USD"}
+@currenciesRegexStr = "([A-Z]{2,3}\s*)?("
 @currencies.each_pair do |k, v|
-  @currenciesRegexStr += "\\" + k.to_s
+  @currenciesRegexStr += k.to_s
+  unless @currencies.keys.last == k
+    @currenciesRegexStr += "|"
+  end
 end
-@currenciesRegexStr += ']\d+[\,\.]\d+'
+@currenciesRegexStr += ')\d+[\,\.]\d+'
+@currenciesRegexStr += '(\s*[A-Z]{2,3})?'
 @currenciesRegexStr.force_encoding(@encoding)
+puts @currenciesRegexStr
 
 #delay request from google
 @delay = 0;
 
 #limit univerities (nil for all)
-@limit = nil;
+@limit = 100;
+
+
+def findOnSite(link, search)
+  link = 'https://www.google.at/search?q=' + URI.escape(search) + URI.escape(' site:') + link
+  sleep(@delay)
+  findpage = Nokogiri::HTML(open(URI.escape(link)))
+  results = findpage.css("#search div div div")
+  return results.size > 0
+end
 
 def getTuition(universityname)
   unistring = universityname.tr(' ', '+')
-  link = 'https://www.google.at/search?q=' + unistring + '+tuition+total+per+year'
+  link = 'https://www.google.at/search?q=' + unistring + ' tuition+total+per+year'
+  puts(URI.escape(link))
   sleep(@delay)
   tuitionpage = Nokogiri::HTML(open(URI.escape(link)))
   text = tuitionpage.css('#search').text.force_encoding(@encoding)
@@ -38,28 +54,34 @@ def getTuition(universityname)
 end
 
 def convertToDollar(value)
-  if value.length > 0
-    currencySign = value[0]
-    if currencySign == "$"
-      return value
-    else
-      value.slice!(0)
-      link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=" + @currencies[currencySign].to_s + "&To=USD"
-      sleep(@delay)
-      convertpage = Nokogiri::HTML(open(URI.escape(link)))
-      answer = convertpage.css('.uccRes .rightCol')[0].text
-      return ("$" + answer)
-    end
-  else
-    return "$0"
-  end
+  puts value
+  # TODO NEU BERECHNEN
+  # if value.length > 0
+  #   currencySign = value[0]
+  #   if currencySign == "$"
+  #     return value.slice!(0)
+  #   else
+  #     value.slice!(0)
+  #     link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=" + @currencies[currencySign].to_s + "&To=USD"
+  #     sleep(@delay)
+  #     convertpage = Nokogiri::HTML(open(URI.escape(link)))
+  #     answer = convertpage.css('.uccRes .rightCol')[0].text
+  #     return ("$" + answer)
+  #   end
+  # else
+  #   return "$0"
+  # end
 end
 
 def outputUniversity(university, *keys)
   if keys.length > 0
     keys.each do |key|
       out = university[key.to_sym]
-      print(out.length == 0 ? "X" : out)
+      if out == true || out == false
+        print out ? "yes" : "no"
+      else
+        print(out.length == 0 ? "X" : out)
+      end
       STDOUT.flush
       if key == keys.last
         puts ""
@@ -73,14 +95,8 @@ def outputUniversity(university, *keys)
   end
 end
 
-def outputToHtmlTable(universities, filename)
-  File.open('./' + filename, 'w') do |new_file|
-    @universities = universities
-    new_file.write ERB.new(File.read('./table.html.erb')).result(binding)
-  end
-end
 
-def parseShanghaiRanking(link)
+def parseShanghaiRanking(link, debug)
   page = Nokogiri::HTML(open(link))
 
   allrows = page.css('table#UniversityRanking > tr')
@@ -93,6 +109,7 @@ def parseShanghaiRanking(link)
     cols = row.css('td')
     university[:rank] = cols[0].text
     university[:name] = cols[1].css('a').text
+    university[:link] = cols[1].css('a')[0]["href"]
     university[:totalscore] = cols[3].css('div').text
     university[:alumni] = cols[4].css('div').text
     university[:award] = cols[5].css('div').text
@@ -100,10 +117,14 @@ def parseShanghaiRanking(link)
     university[:pub] = cols[7].css('div').text
     university[:top] = cols[8].css('div').text
     university[:tuition] = convertToDollar(getTuition(university[:name]))
-    outputUniversity(university, 'rank', 'name', 'tuition')
+    university[:englishcourse] = findOnSite(university[:link],"programming course")
+    if debug
+      #outputUniversity(university, 'rank', 'name', 'tuition', 'englishcourse')
+      outputUniversity(university, 'name')
+    end
     universities.push(university)
   end
-  outputToHtmlTable(universities, 'output.html')
+  return universities
 end
 
 
