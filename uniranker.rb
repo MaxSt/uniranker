@@ -18,7 +18,7 @@ end
 
 def writeHashToJSON(hash, filename)
   File.open("./" + filename,"w") do |f|
-    f.write(pretty_generate(hash.to_json))
+    f.write(JSON.pretty_generate(hash))
   end
 end
 
@@ -59,7 +59,7 @@ if options[:writejson]
 end
 
 maxTuition = universities.reduce([]){ |arr, u|
-  arr.push(u["tuition"].sub!(',', '').to_f)
+  arr.push(u["tuition"].to_f)
 }.max
 
 universities.each do |u|
@@ -68,7 +68,7 @@ universities.each do |u|
   sum += u["hici"].to_f * 0.22
   sum += u["pub"].to_f * 0.22
   sum += u["top"].to_f * 0.22
-  sum += (maxTuition - u["tuition"].sub!(',', '').to_f) / maxTuition
+  sum += (maxTuition - u["tuition"].to_f) / maxTuition
   u["newVAL"] = sum
 end
 

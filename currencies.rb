@@ -33,18 +33,22 @@ def regexAllCurrencies
 end
 
 def getNumber(str)
-  numberexp = "\\d+([\\,\\.]\\d+){0,2}".force_encoding(@encoding)
+  numberexp = "\\d+([\\,\\.]\\d+){0,2}$".force_encoding(@encoding)
   numberstr = str.match(/#{numberexp}/).to_s
-  lastsep = numberstr.rindex(/[\.\,]/)
+  lastsep = numberstr.rindex(/[\.\,]\d{2}$/)
   if(lastsep)
     numberstr[lastsep] = 'X'
-    newsep = numberstr.rindex(/[\.\,]\d{2}/)
-    while(newsep)
+  end
+
+  newsep = numberstr.rindex(/[\.\,]/)
+  while(newsep)
     numberstr.slice! newsep
     newsep = numberstr.rindex(/[\.\,]/)
-    end
+  end
+  if(lastsep)
     numberstr[lastsep] = '.'
   end
+
   return numberstr.to_f
 end
 
