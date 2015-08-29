@@ -18,7 +18,7 @@ end
 
 def writeHashToJSON(hash, filename)
   File.open("./" + filename,"w") do |f|
-    f.write(hash.to_json)
+    f.write(pretty_generate(hash.to_json))
   end
 end
 

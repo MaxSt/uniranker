@@ -10,23 +10,13 @@ require 'nokogiri'
 #open url
 require 'open-uri'
 
+#all currencies hash
+require "./currencies.rb"
 
 @encoding = "ISO-8859-1"
-@currencies = {
-  "\\€" => "EUR",
-  "\\£" => "GBP",
-  "\\$" => "USD"}
-@currenciesRegexStr = "([A-Z]{2,3}\s*)?("
-@currencies.each_pair do |k, v|
-  @currenciesRegexStr += k.to_s
-  unless @currencies.keys.last == k
-    @currenciesRegexStr += "|"
-  end
-end
-@currenciesRegexStr += ')\d+[\,\.]\d+'
-@currenciesRegexStr += '(\s*[A-Z]{2,3})?'
-@currenciesRegexStr.force_encoding(@encoding)
-puts @currenciesRegexStr
+
+@currenciesRegexStr = regexAllCurrencies
+#puts @currenciesRegexStr
 
 #delay request from google
 @delay = 0;
@@ -53,8 +43,22 @@ def getTuition(universityname)
   return text.match(/#{@currenciesRegexStr}/).to_s
 end
 
-def convertToDollar(value)
+def convertToDollar(str)
+  puts str
+  isocode = getISOCode(str)
+  puts isocode
+  value = getNumber(str)
   puts value
+  if(isocode == 'USD')
+    return value
+  else
+    link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=#{isocode}&To=USD"
+    sleep(@delay)
+    convertpage = Nokogiri::HTML(open(URI.escape(link)))
+    answer = convertpage.css('.uccRes .rightCol')[0].text
+    return answer
+  end
+
   # TODO NEU BERECHNEN
   # if value.length > 0
   #   currencySign = value[0]
