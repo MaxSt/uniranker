@@ -18,13 +18,14 @@ require "./currencies.rb"
 @currenciesRegexStr = regexAllCurrencies
 #puts @currenciesRegexStr
 
-#delay request from google
+#delay request for google search
 @delay = 0;
 
 #limit univerities (nil for all)
-@limit = 100;
+@limit = nil;
 
 
+#find <search> on site <link> returns true if <search> found
 def findOnSite(link, search)
   link = 'https://www.google.at/search?q=' + URI.escape(search) + URI.escape(' site:') + link
   sleep(@delay)
@@ -33,49 +34,18 @@ def findOnSite(link, search)
   return results.size > 0
 end
 
+#get tuition for university <universityname>
 def getTuition(universityname)
   unistring = universityname.tr(' ', '+')
   link = 'https://www.google.at/search?q=' + unistring + ' tuition+total+per+year'
-  puts(URI.escape(link))
+  puts link
   sleep(@delay)
   tuitionpage = Nokogiri::HTML(open(URI.escape(link)))
   text = tuitionpage.css('#search').text.force_encoding(@encoding)
-  return text.match(/#{@currenciesRegexStr}/).to_s
+  #rutrn match of @currenciesRegexStr and trim newline characters
+  return text.match(/#{@currenciesRegexStr}/).to_s.gsub("\n","")
 end
 
-def convertToDollar(str)
-  puts str
-  isocode = getISOCode(str)
-  puts isocode
-  value = getNumber(str)
-  puts value
-  if(isocode == 'USD')
-    return value
-  else
-    link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=#{isocode}&To=USD"
-    sleep(@delay)
-    convertpage = Nokogiri::HTML(open(URI.escape(link)))
-    answer = convertpage.css('.uccRes .rightCol')[0].text
-    return answer
-  end
-
-  # TODO NEU BERECHNEN
-  # if value.length > 0
-  #   currencySign = value[0]
-  #   if currencySign == "$"
-  #     return value.slice!(0)
-  #   else
-  #     value.slice!(0)
-  #     link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=" + @currencies[currencySign].to_s + "&To=USD"
-  #     sleep(@delay)
-  #     convertpage = Nokogiri::HTML(open(URI.escape(link)))
-  #     answer = convertpage.css('.uccRes .rightCol')[0].text
-  #     return ("$" + answer)
-  #   end
-  # else
-  #   return "$0"
-  # end
-end
 
 def outputUniversity(university, *keys)
   if keys.length > 0
@@ -84,7 +54,7 @@ def outputUniversity(university, *keys)
       if out == true || out == false
         print out ? "yes" : "no"
       else
-        print(out.length == 0 ? "X" : out)
+        print(out)
       end
       STDOUT.flush
       if key == keys.last
@@ -94,6 +64,7 @@ def outputUniversity(university, *keys)
         STDOUT.flush
       end
     end
+    puts "-------------------------------------"
   else
     puts "wrong Parameters in outputUniversity"
   end
@@ -108,7 +79,9 @@ def parseShanghaiRanking(link, debug)
 
   universities = Array.new
   allrows.each_with_index do |row, index|
+    #when limit is not null only fetch @limit universities
     break if @limit && index >= @limit
+
     university = Hash.new
     cols = row.css('td')
     university[:rank] = cols[0].text
@@ -120,19 +93,15 @@ def parseShanghaiRanking(link, debug)
     university[:hici] = cols[6].css('div').text
     university[:pub] = cols[7].css('div').text
     university[:top] = cols[8].css('div').text
-    university[:tuition] = convertToDollar(getTuition(university[:name]))
+    university[:tuition] = convertToDollar(getTuition(university[:name]), debug)
     university[:englishcourse] = findOnSite(university[:link],"programming course")
+
     if debug
-      #outputUniversity(university, 'rank', 'name', 'tuition', 'englishcourse')
-      outputUniversity(university, 'name')
+      outputUniversity(university, 'rank', 'name', 'tuition', 'englishcourse')
     end
+
     universities.push(university)
+
   end
   return universities
 end
-
-
-# universities.each do |u|
-#   puts u[:rank] + ' | ' + u[:name]
-# end
-

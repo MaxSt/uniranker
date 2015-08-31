@@ -1,10 +1,23 @@
 # encoding: UTF-8
+
+#use pure ruby dns lookup
+require 'resolv-replace'
+
+#parse xml/html
+require 'nokogiri'
+
+#open url
+require 'open-uri'
+
 @encoding = "ISO-8859-1"
 
+#helper to generate REGEX for currency symbol before and after the value
 def preorpost(str)
-  number = "\\d+([\\,\\.]\\d+){0,2}"
-  "(#{number}\\s*#{str})|(#{str}\\s*#{number})"
+  value = "\\d+([\\,\\.]\\d+){0,2}"
+  "(#{value}\\s*#{str})|(#{str}\\s*#{value})"
 end
+
+#all supported currencies in format [isostring] => regex
 def getAllCurrencies
   {
   "EUR" => preorpost("\\€"),
@@ -13,10 +26,12 @@ def getAllCurrencies
   "CHF" => preorpost("CHF"),
   "TWD" => preorpost("NT\\$"),
   "SGD" => preorpost("S\\$"),
+  "HKD" => preorpost("HK\\$"),
   "CNY" => preorpost("(\\¥|RNB)")
   }
 end
 
+#generate regex for all supported currencies
 def regexAllCurrencies
   currencies = getAllCurrencies
   cs = currencies.values
@@ -32,6 +47,7 @@ def regexAllCurrencies
   return cs_regex.force_encoding(@encoding)
 end
 
+#filter out number of string str
 def getNumber(str)
   numberexp = "\\d+([\\,\\.]\\d+){0,2}$".force_encoding(@encoding)
   numberstr = str.match(/#{numberexp}/).to_s
@@ -52,6 +68,7 @@ def getNumber(str)
   return numberstr.to_f
 end
 
+#filter out iso code of string str
 def getISOCode(str)
   currencies = getAllCurrencies
   currencies.each_pair do |k, v|
@@ -61,117 +78,24 @@ def getISOCode(str)
   end
   return nil
 end
-# {
-# "USD" => "\\$",
-# "GBP" => "\\£",
-# "EUR" => "\\€",
-# "AFN" => "\\؋",
-# "ALL" => "Lek",
-# "ARS" => "\\$",
-# "AWG" => "\\ƒ",
-# "AUD" => "\\$",
-# "AZN" => "\\м\\а\\н",
-# "BSD" => "\\$",
-# "BBD" => "\\$",
-# "BYR" => "p\\.",
-# "BZD" => "BZ\\$",
-# "BMD" => "\\$",
-# "BOB" => "\\$b",
-# "BAM" => "KM",
-# "BWP" => "P",
-# "BGN" => "\\л\\в",
-# "BRL" => "R\\$",
-# "BND" => "\\$",
-# "KHR" => "\\៛",
-# "CAD" => "\\$",
-# "KYD" => "\\$",
-# "CLP" => "\\$",
-# "CNY" => "\\¥",
-# "CNB" => "\\¥",
-# "COP" => "\\$",
-# "CRC" => "\\₡",
-# "HRK" => "kn",
-# "CUP" => "\\₱",
-# "CZK" => "K\\č",
-# "DKK" => "kr",
-# "DOP" => "RD\\$",
-# "XCD" => "\\$",
-# "EGP" => "\\£",
-# "SVC" => "\\$",
-# "EEK" => "kr",
-# "FKP" => "\\£",
-# "FJD" => "\\$",
-# "GHC" => "\\¢",
-# "GIP" => "\\£",
-# "GTQ" => "Q",
-# "GGP" => "\\£",
-# "GYD" => "\\$",
-# "HNL" => "L",
-# "HKD" => "\\$",
-# "HUF" => "Ft",
-# "ISK" => "kr",
-# "IDR" => "Rp",
-# "IRR" => "\\﷼",
-# "IMP" => "\\£",
-# "ILS" => "\\₪",
-# "JMD" => "J\\$",
-# "JPY" => "\\¥",
-# "JEP" => "\\£",
-# "KZT" => "\\лв",
-# "KPW" => "\\₩",
-# "KRW" => "\\₩",
-# "KGS" => "\\л\\в",
-# "LAK" => "\\₭",
-# "LVL" => "Ls",
-# "LBP" => "\\£",
-# "LRD" => "\\$",
-# "LTL" => "Lt",
-# "MKD" => "\\д\\е\\н",
-# "MYR" => "RM",
-# "MUR" => "\\₨",
-# "MXN" => "\\$",
-# "MNT" => "\\₮",
-# "MZN" => "MT",
-# "NAD" => "\\$",
-# "NPR" => "\\₨",
-# "ANG" => "\\ƒ",
-# "NZD" => "\\$",
-# "NIO" => "C\\$",
-# "NGN" => "\\₦",
-# "KPW" => "\\₩",
-# "NOK" => "kr",
-# "OMR" => "\\﷼",
-# "PKR" => "\\₨",
-# "PYG" => "Gs",
-# "PHP" => "\\₱",
-# "PLN" => "z\\ł",
-# "QAR" => "\\﷼",
-# "RON" => "lei",
-# "RUB" => "\\р\\у\\б",
-# "SHP" => "\\£",
-# "SAR" => "\\﷼",
-# "RSD" => "\\Д\\и\\н\\.",
-# "SCR" => "\\₨",
-# "SGD" => "\\$",
-# "SBD" => "\\$",
-# "SOS" => "S",
-# "ZAR" => "R",
-# "KRW" => "\\₩",
-# "LKR" => "\\₨",
-# "SEK" => "kr",
-# "CHF" => "CHF",
-# "SRD" => "\\$",
-# "SYP" => "\\£",
-# "TWD" => "NT\\$",
-# "THB" => "\\฿",
-# "TTD" => "TT\\$",
-# "TRL" => "\\₤",
-# "TVD" => "\\$",
-# "UAH" => "\\₴",
-# "UYU" => "\\$U",
-# "UZS" => "\\л\\в",
-# "VEF" => "Bs",
-# "VND" => "\\₫",
-# "YER" => "\\﷼",
-# "ZWD" => "Z\\$"}
-# }
+
+#convert currency String str to dollar
+def convertToDollar(str, debug)
+  isocode = getISOCode(str)
+  value = getNumber(str)
+  if(isocode == 'USD')
+    if debug
+      puts "Value in USD: #{value}"
+    end
+    return value
+  else
+    link = "http://www.xe.com/currencyconverter/convert/?Amount=" + value.to_s + "&From=#{isocode}&To=USD"
+    convertpage = Nokogiri::HTML(open(URI.escape(link)))
+    answer = convertpage.css('.uccRes .rightCol')[0].text.force_encoding(@encoding)
+    newVal = getNumber(answer)
+    if debug
+      puts "Converted Value: #{str} to #{newVal.to_s}$"
+    end
+    return newVal
+  end
+end
