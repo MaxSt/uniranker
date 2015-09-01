@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require "./shanghaiRanking.rb"
+require "./rankUniversities.rb"
 
 #json
 require 'json'

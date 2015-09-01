@@ -1,2 +1,4 @@
-output.html
+*.html
 *.json
+
+!table.html.erb

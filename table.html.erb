@@ -8,14 +8,16 @@
     <table>
       <thead>
         <tr>
+        <th>rank</th>
         <% @universities.first.keys.each do |key| %>
           <th><%= key %></th>
         <% end %>
         </tr>
       </thead>
       <tbody>
-        <% @universities.each do |university| %>
+        <% @universities.each_with_index do |university, i| %>
           <tr>
+            <td><%= (i+1) %></td>
           <% university.keys.each do |key| %>
             <td><%= university[key] %></td>
           <% end %>

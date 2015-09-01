@@ -49,9 +49,9 @@ end
 
 #filter out number of string str
 def getNumber(str)
-  numberexp = "\\d+([\\,\\.]\\d+){0,2}$".force_encoding(@encoding)
+  numberexp = "\\d+([\\,\\.]\\d+){0,2}".force_encoding(@encoding)
   numberstr = str.match(/#{numberexp}/).to_s
-  lastsep = numberstr.rindex(/[\.\,]\d{2}$/)
+  lastsep = numberstr.rindex(/(\.\d+$)|(\,\d{2}$)/)
   if(lastsep)
     numberstr[lastsep] = 'X'
   end
@@ -61,6 +61,7 @@ def getNumber(str)
     numberstr.slice! newsep
     newsep = numberstr.rindex(/[\.\,]/)
   end
+
   if(lastsep)
     numberstr[lastsep] = '.'
   end

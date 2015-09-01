@@ -16,12 +16,19 @@ def rankUniversities(universities)
     score += u["top"].to_f * 0.22
     score += (maxTuition - u["tuition"].to_f) / maxTuition
 
-    arr.push {
-      name: u["name"],
-      link: u["link"],
-      score: score,
+    hash = Hash.new
+    hash = {
+      :name => u["name"],
+      :link => u["link"],
+      :tuition => u["tuition"],
+      :englishcourse => u["englishcourse"],
+      :score => score,
     }
+    arr.push hash
   }
+
+  rankedUniversities.sort! { |a,b| a[:score] <=> b[:score] }
+  rankedUniversities.reverse!
 
   return rankedUniversities
 end
