@@ -1,6 +1,6 @@
 ## UniRanker
 
-UniRanker is a information retrieval component, which is fetching information about the latest academic rankings + web data about the student fees of the ranked universities as well as the percentage of courses held in English and other access hurdles.
+UniRanker is a information retrieval component, which is fetching information about the latest academic rankings + web data about the student fees of the ranked universities as well as other access hurdles.
 UniRanker is written in Ruby.
 
 ### Installation
@@ -21,6 +21,11 @@ bundle install
 run uniranker.rb ruby script
 ```
 ruby uniranker.rb
+```
+
+for a list of all available parameter run
+```
+ruby uniranker.rb -h
 ```
 
 ### Copyright and license

@@ -11,6 +11,9 @@ require 'erb'
 #parse options
 require 'optparse'
 
+defaultlink = "http://www.shanghairanking.com/SubjectCS2014.html"
+defaultcourse = "programming"
+
 #write ruby hash <universities> to file <filename> as html table
 def outputToHtmlTable(universities, filename)
   File.open('./' + filename, 'w') do |new_file|
@@ -55,17 +58,34 @@ OptionParser.new do |opts|
   end
 
   #option for setting output file (output is in html format)
-  opts.on("-o", "--output", "Set Output file (output is in html format)") do |v|
+  opts.on("-oFILE", "--output-file=FILE", "Set Output file [FILE](output is in html format)") do |v|
     options[:output] = v
   end
 
+  #option for setting the link for the Ranking (only shanghai Ranking is
+  #supported)
+  opts.on("-lLINK", "--ranking-link=LINK", "Set Link to the Ranking [LINK](only shanghai ranking is supported)") do |v|
+    unless v.start_with? "http://www.shanghairanking.com"
+      puts "Link URL not supported! taking stanard (#{defaultlink})"
+    else
+      options[:link] = v
+    end
+  end
+
+  #option for setting coursetitle for the search on the site
+  opts.on("-cCOURSE", "--course=COURSE", "Set coursetitle to search for on university site") do |v|
+    options[:course] = v
+  end
+
+
 end.parse!
 
-link = 'http://www.shanghairanking.com/SubjectCS2014.html'
+options[:link] = defaultlink unless options[:link]
+options[:course] = defaultcourse unless options[:course]
 
 #when option readjson is set
 if !options[:readjson]
-  universities = parseShanghaiRanking(link, options[:debug] || false)
+  universities = parseShanghaiRanking(options[:link], options[:debug] || false, options[:course])
 else
   puts "reading univerities from #{options[:readjson]}"
   universities = getHashFromJson(options[:readjson])
@@ -80,7 +100,7 @@ end
 rankedUniversities = rankUniversities(universities)
 
 #set default output if it is not set manually
-options[:output] = 'output.html' if options[:output]
+options[:output] = "output.html" unless options[:output]
 
 outputToHtmlTable(rankedUniversities, options[:output])
 puts "html table written to #{options[:output]}"

@@ -16,7 +16,6 @@ require "./currencies.rb"
 @encoding = "ISO-8859-1"
 
 @currenciesRegexStr = regexAllCurrencies
-#puts @currenciesRegexStr
 
 #delay request for google search
 @delay = 0;
@@ -38,7 +37,6 @@ end
 def getTuition(universityname)
   unistring = universityname.tr(' ', '+')
   link = 'https://www.google.at/search?q=' + unistring + ' tuition+total+per+year'
-  puts link
   sleep(@delay)
   tuitionpage = Nokogiri::HTML(open(URI.escape(link)))
   text = tuitionpage.css('#search').text.force_encoding(@encoding)
@@ -71,7 +69,7 @@ def outputUniversity(university, *keys)
 end
 
 
-def parseShanghaiRanking(link, debug)
+def parseShanghaiRanking(link, debug, course)
   page = Nokogiri::HTML(open(link))
 
   allrows = page.css('table#UniversityRanking > tr')
@@ -93,11 +91,11 @@ def parseShanghaiRanking(link, debug)
     university[:hici] = cols[6].css('div').text
     university[:pub] = cols[7].css('div').text
     university[:top] = cols[8].css('div').text
-    university[:tuition] = convertToDollar(getTuition(university[:name]), debug)
-    university[:englishcourse] = findOnSite(university[:link],"programming course")
+    university[:tuition] = convertToDollar(getTuition(university[:name]), debug).to_s
+    university[:coursefound] = findOnSite(university[:link], "course #{course}")
 
     if debug
-      outputUniversity(university, 'rank', 'name', 'tuition', 'englishcourse')
+      outputUniversity(university, 'rank', 'name', 'tuition', 'coursefound')
     end
 
     universities.push(university)
