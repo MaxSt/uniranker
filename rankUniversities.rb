@@ -19,11 +19,11 @@ def rankUniversities(universities)
     if(u["coursefound"])
       score += 1 * 0.05
     end
-    puts "#{u["name"]} #{score.to_s}"
 
     hash = Hash.new
     hash = {
       :name => u["name"],
+      :oldrank => u["rank"],
       :link => u["link"],
       :tuition => u["tuition"],
       :coursefound => u["coursefound"],

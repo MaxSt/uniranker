@@ -48,7 +48,7 @@ end
 def outputUniversity(university, *keys)
   if keys.length > 0
     keys.each do |key|
-      out = university[key.to_sym]
+      out = university[key]
       if out == true || out == false
         print out ? "yes" : "no"
       else
@@ -82,20 +82,20 @@ def parseShanghaiRanking(link, debug, course)
 
     university = Hash.new
     cols = row.css('td')
-    university[:rank] = cols[0].text
-    university[:name] = cols[1].css('a').text
-    university[:link] = cols[1].css('a')[0]["href"]
-    university[:totalscore] = cols[3].css('div').text
-    university[:alumni] = cols[4].css('div').text
-    university[:award] = cols[5].css('div').text
-    university[:hici] = cols[6].css('div').text
-    university[:pub] = cols[7].css('div').text
-    university[:top] = cols[8].css('div').text
-    university[:tuition] = convertToDollar(getTuition(university[:name]), debug).to_s
-    university[:coursefound] = findOnSite(university[:link], "course #{course}")
+    university["rank"] = cols[0].text
+    university["name"] = cols[1].css('a').text
+    university["link"] = cols[1].css('a')[0]["href"]
+    university["totalscore"] = cols[3].css('div').text
+    university["alumni"] = cols[4].css('div').text
+    university["award"] = cols[5].css('div').text
+    university["hici"] = cols[6].css('div').text
+    university["pub"] = cols[7].css('div').text
+    university["top"] = cols[8].css('div').text
+    university["tuition"] = convertToDollar(getTuition(university["name"]), debug).to_s
+    university["coursefound"] = findOnSite(university["link"], "course #{course}")
 
     if debug
-      outputUniversity(university, 'rank', 'name', 'tuition', 'coursefound')
+      outputUniversity(university, "rank", "name", "tuition", "coursefound")
     end
 
     universities.push(university)
